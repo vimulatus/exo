@@ -4,7 +4,11 @@ import { APIError } from "better-auth/api";
 import { nextCookies } from "better-auth/next-js";
 import { db } from "@/lib/db";
 import * as schema from "@/lib/db/schema";
-import { isAllowedEmail } from "./allowed-domains";
+import { isAllowedEmail, parseAllowedDomains } from "./allowed-domains";
+
+const [hostedDomain] = parseAllowedDomains(
+  process.env.AUTH_ALLOWED_EMAIL_DOMAINS,
+);
 
 export const auth = betterAuth({
   database: drizzleAdapter(db, { provider: "pg", schema }),
@@ -12,6 +16,7 @@ export const auth = betterAuth({
     google: {
       clientId: process.env.GOOGLE_CLIENT_ID ?? "",
       clientSecret: process.env.GOOGLE_CLIENT_SECRET ?? "",
+      hd: hostedDomain,
     },
   },
   databaseHooks: {
