@@ -16,6 +16,39 @@ bun dev
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
+## Database
+
+Postgres via [Drizzle ORM](https://orm.drizzle.team). Deployed envs use
+[Neon](https://neon.tech); local dev/testing uses a docker-compose Postgres. The
+client in `src/lib/db` auto-selects the driver from `DATABASE_URL` (Neon HTTP for
+`*.neon.tech`, node-postgres otherwise).
+
+First, set up env:
+
+```bash
+cp .env.example .env   # local DATABASE_URL targets localhost:5434
+```
+
+Start the local Postgres (host port **5434** — 5432/5433 are used by other
+projects):
+
+```bash
+docker compose up -d
+```
+
+Apply migrations:
+
+```bash
+bun run db:migrate
+```
+
+Migration workflow:
+
+- `bun run db:generate` — generate SQL migrations from `src/lib/db/schema.ts`
+  (add `--custom --name <name>` for a hand-written migration)
+- `bun run db:migrate` — apply pending migrations
+- `bun run db:studio` — open Drizzle Studio
+
 You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
 
 This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
