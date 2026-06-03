@@ -12,19 +12,16 @@ if (!url) throw new Error("DATABASE_URL is not set");
 // the same import works everywhere — see docker-compose.yml + .env.example.
 const isNeon = /\.neon\.tech/.test(url);
 
-function createDb() {
-  if (isNeon) {
-    return drizzleNeon({ client: neon(url as string), schema });
-  }
-  return drizzlePg({ client: new Pool({ connectionString: url }), schema });
-}
-
 // Cache the client on globalThis so Next.js dev HMR doesn't open a new pool on
 // every reload. Production gets one instance per process either way.
 const globalForDb = globalThis as unknown as {
-  db?: ReturnType<typeof createDb>;
+  db?: ReturnType<typeof drizzleNeon> | ReturnType<typeof drizzlePg>;
 };
 
-export const db = globalForDb.db ?? createDb();
+export const db =
+  globalForDb.db ??
+  (isNeon
+    ? drizzleNeon({ client: neon(url), schema })
+    : drizzlePg({ client: new Pool({ connectionString: url }), schema }));
 
 if (process.env.NODE_ENV !== "production") globalForDb.db = db;
